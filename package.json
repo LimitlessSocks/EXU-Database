@@ -1,0 +1,31 @@
+{
+  "name": "database",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./src/database.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node debug.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LimitlessSocks/EXU-Autoresponder.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LimitlessSocks/EXU-Autoresponder/issues"
+  },
+  "homepage": "https://github.com/LimitlessSocks/EXU-Autoresponder#readme",
+  "dependencies": {
+    "@discordjs/builders": "^0.13.0",
+    "@discordjs/rest": "^0.4.1",
+    "discord-api-types": "^0.33.0",
+    "discord.js": "^13.3.1",
+    "fuzzy-search": "^3.2.1",
+    "node-fetch": "^2.6.7"
+  },
+  "engines": {
+    "node": "16.x"
+  }
+}
