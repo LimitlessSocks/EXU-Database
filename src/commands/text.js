@@ -16,9 +16,10 @@ command.data =
         );
 
 command.execute = async (interaction, Database) => {
-    let card = await search(interaction, Database);
+    let cards = await search(interaction, Database);
     
-    if(!card) return;
+    if(!cards.length) return;
+    let card = cards[0];
     
     let effect = card.effect;
     if(card.monster_color === "Normal") {

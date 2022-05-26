@@ -16,9 +16,11 @@ command.data =
         );
 
 command.execute = async (interaction, Database) => {
-    let card = await search(interaction, Database);
+    let cards = await search(interaction, Database);
     
-    if(!card) return;
+    if(!cards.length) return;
+    
+    let card = cards[0];
     
     await interaction.reply(`**${card.name}** is at ${card.exu_limit ?? 3}.`);
 };
