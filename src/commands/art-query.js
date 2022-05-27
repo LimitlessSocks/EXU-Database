@@ -9,7 +9,7 @@ command.name = "art-query";
 command.data =
     new SlashCommandBuilder()
 		.setName(command.name)
-		.setDescription("Gets the art of a searched card")
+		.setDescription("Gets the art of a searched card using natural input")
         .addStringOption((option) =>
             option.setName("input")
                   .setDescription("The natural input")
@@ -26,11 +26,6 @@ command.execute = async (interaction, Database) => {
     
     let embeds = cards.map(makeArtEmbed);
     await paginate(interaction, embeds);
-};
-command.autocomplete = async (interaction, Database) => {
-    return await autocomplete(interaction, Database, {
-        noId: true
-    });
 };
 
 module.exports = command;

@@ -44,6 +44,7 @@ const loadDatabase = async function() {
     Database.cards = db;
     Database.lastUpdated = new Date().valueOf(); 
 };
+Database.loadDatabase = loadDatabase;
 loadDatabase();
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });

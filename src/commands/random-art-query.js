@@ -7,7 +7,7 @@ command.name = "random-art-query";
 command.data =
     new SlashCommandBuilder()
 		.setName(command.name)
-		.setDescription("Gives the art of a random card in the database (custom or not)")
+		.setDescription("Gets the art of a random card filtered by natural input")
         .addStringOption((option) =>
             option.setName("input")
                   .setDescription("The natural input")
