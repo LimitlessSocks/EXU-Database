@@ -1,25 +1,26 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { autocomplete } = require("./../autocomplete.js");
-const { search } = require("./../search.js");
-const { COLORS } = require("./../static.js");
+const { initialize, queryNaturalInput } = require("./../tag-extract.js");
 const paginate = require("./../pagination.js");
 const makeArtEmbed = require("./../make-art-embed.js");
 
 const command = {};
-command.name = "art";
+command.name = "art-query";
 command.data =
     new SlashCommandBuilder()
 		.setName(command.name)
 		.setDescription("Gets the art of a searched card")
         .addStringOption((option) =>
-            option.setName("name")
-                  .setDescription("The card you want to search")
+            option.setName("input")
+                  .setDescription("The natural input")
                   .setRequired(true)
-                  .setAutocomplete(true)
         );
 
 command.execute = async (interaction, Database) => {
-    let cards = await search(interaction, Database);
+    let input = interaction.options.getString("input");
+    
+    initialize(Database);
+    let cards = queryNaturalInput(input);
     
     if(!cards) return;
     
