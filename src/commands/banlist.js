@@ -22,7 +22,18 @@ command.execute = async (interaction, Database) => {
     
     let card = cards[0];
     
-    await interaction.reply(`**${card.name}** is at ${card.exu_limit ?? 3}.`);
+    let limit = "";
+    if(card.tcg) {
+        limit += card?.exu_limit ?? "3";
+    }
+    else if(card.ocg) {
+        limit += "0 [OCG]";
+    }
+    else {
+        limit += "(unknown)";
+    }
+    
+    await interaction.reply(`**${card.name}** is at ${limit}.`);
 };
 command.autocomplete = async (interaction, Database) => {
     return await autocomplete(interaction, Database, {
