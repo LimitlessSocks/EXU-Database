@@ -150,8 +150,18 @@ module.exports = (card) => {
         footer = `${card.serial_number} (${card.id})`;
     }
     
+    let limit = "";
+    if(card.tcg) {
+        limit += card?.exu_limit ?? "3";
+    }
+    else if(card.ocg) {
+        limit += "0 [OCG]";
+    }
+    else {
+        limit += "(unknown)";
+    }
     fields.unshift({ name: "Type", value: type, inline: true });
-    fields.push({ name: "EXU Banlist Status", value: (card?.exu_limit ?? "3") + "", inline: true });
+    fields.push({ name: "EXU Banlist Status", value: limit, inline: true });
     fields.push({ name: "Links", value: `[DuelingBook](https://www.duelingbook.com/card?id=${card.id}) · [EXU](https://limitlesssocks.github.io/EXU-Scrape/card?id=${card.id})` });
     
     return new MessageEmbed()
