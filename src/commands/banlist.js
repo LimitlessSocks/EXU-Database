@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { autocomplete } = require("./../autocomplete.js");
 const { search } = require("./../search.js");
+const banlistLimit = require("./../banlist-status.js");
 
 const command = {};
 command.name = "banlist";
@@ -21,17 +22,7 @@ command.execute = async (interaction, Database) => {
     if(!cards.length) return;
     
     let card = cards[0];
-    
-    let limit = "";
-    if(card.tcg) {
-        limit += card?.exu_limit ?? "3";
-    }
-    else if(card.ocg) {
-        limit += "0 [OCG]";
-    }
-    else {
-        limit += "(unknown)";
-    }
+    let limit = banlistLimit(card);
     
     await interaction.reply(`**${card.name}** is at ${limit}.`);
 };
