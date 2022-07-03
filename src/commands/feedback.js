@@ -73,7 +73,7 @@ command.execute = async (interaction, Database) => {
         });
         return;
     }
-    console.log(options);
+    // console.log(options);
     const paragraphs = [];
     for(let i = 1; i <= PARAGRAPH_MAX; i++) {
         let p = options.getString(`paragraph${i}`);
@@ -88,9 +88,9 @@ command.execute = async (interaction, Database) => {
     let message = `${userMention(creatorId)} __Submission:__ [${inlineCode(subName)}]\n${body}\n[\`Staff Consensus\`]: ${decision}`;
     
     await feedbackChannel.send(message);
+    await interaction.reply("Sent feedback at " + time(new Date()) + "!");
     await client.channels.cache.get(BEAR_NOTIFICATION_DESTINATION)
         .send(`${userMention(BEAR)} Feedback delivered for ${inlineCode(subName)}! Decision: ${decision}`);
-    await interaction.reply("Sent feedback at " + time(new Date()) + "!");
 };
 
 module.exports = command;
