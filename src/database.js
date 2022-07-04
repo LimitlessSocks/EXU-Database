@@ -36,7 +36,7 @@ const loadDatabase = async function() {
         card.idString = card.id + "";
         card.exu_limit ??= 3;
         card.src = card.src || (
-            "https://www.duelingbook.com/images/low-res/" + card.id + ".jpg"
+            "http://storage.googleapis.com/ygoprodeck.com/pics_artgame/" + card.serial_number + ".jpg"
         );
     }
     console.log("assign database");

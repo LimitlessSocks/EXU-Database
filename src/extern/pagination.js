@@ -48,7 +48,7 @@ const paginationEmbed = async (
     if(oldFooters[page]) {
       text += ` · ${oldFooters[page]}`;
     }
-    return pages[page].setFooter(text);
+    return pages[page].setFooter({ text });
   }
 
   const curPage = await interaction.editReply({

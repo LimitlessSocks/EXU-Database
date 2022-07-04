@@ -163,5 +163,5 @@ module.exports = (card) => {
         .setDescription(effect)
         .addFields(fields)
         .setThumbnail(card.src)
-        .setFooter(footer);
+        .setFooter({ text: footer });
 };
