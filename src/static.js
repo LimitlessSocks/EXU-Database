@@ -36,6 +36,9 @@ const getLinkArrowText = (arrows) => {
             result += rowString + "\n";
         }
     }
+    if(result === "") {
+        result = BLS;
+    }
     return result;
 };
 
