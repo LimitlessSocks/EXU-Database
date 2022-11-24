@@ -1,10 +1,9 @@
 const { REST } = require("@discordjs/rest");
 const { Client, Intents } = require("discord.js");
-const { token } = require("./config.json");
 const { Routes } = require("discord-api-types/v9");
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const fs = require("node:fs");
-
+const path = require("node:path");
 const fetch = require("node-fetch");
 
 let Database = {
@@ -51,7 +50,7 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 
 const commands = new Map([]);
 const commandData = [];
-const commandFiles = fs.readdirSync("./src/commands")
+const commandFiles = fs.readdirSync(path.join(__dirname, "commands"))
     .filter(file => file.endsWith(".js"));
 
 for (const file of commandFiles) {
@@ -124,22 +123,38 @@ const guilds = [
     "614168076065177620", //extinction unleashed
 ];
 
-for(let guildId of guilds) {
-    const rest = new REST({ version: "9" }).setToken(token);
-    (async () => {
-        try {
-            console.log("Started refreshing application (/) commands.");
-
-            await rest.put(
-                Routes.applicationGuildCommands(clientId, guildId),
-                { body: commandData },
-            );
-
-            console.log("Successfully reloaded application (/) commands.");
-        } catch (error) {
-            console.error(error);
+(function () {
+    console.log("Getting token from .env");
+    const envPath = path.join(__dirname, "..", ".env");
+    const data = fs.readFileSync(envPath).toString();
+    let token;
+    for(let [ match, name, value ] of data.matchAll(/(.+?)=(.+)/g)) {
+        if(name === "BOT_TOKEN") {
+            token = value;
         }
-    })();
-}
+    }
+    if(!token) {
+        console.error("Could not find token in .env");
+        return;
+    }
+    
+    for(let guildId of guilds) {
+        const rest = new REST({ version: "9" }).setToken(token);
+        (async () => {
+            try {
+                console.log("Started refreshing application (/) commands.");
 
-client.login(token);
+                await rest.put(
+                    Routes.applicationGuildCommands(clientId, guildId),
+                    { body: commandData },
+                );
+
+                console.log("Successfully reloaded application (/) commands.");
+            } catch (error) {
+                console.error(error);
+            }
+        })();
+    }
+
+    client.login(token);
+})();
