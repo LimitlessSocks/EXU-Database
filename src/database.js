@@ -48,8 +48,6 @@ const loadDatabase = async function() {
 Database.loadDatabase = loadDatabase;
 loadDatabase();
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
-
 const commands = new Map([]);
 const commandData = [];
 const commandFiles = fs.readdirSync(path.join(__dirname, "commands"))
@@ -63,61 +61,6 @@ for (const file of commandFiles) {
     console.log("---- ", cmd.name);
 }
 
-// When the client is ready, run this code (only once)
-client.once("ready", c => {
-	console.log(`Ready! Logged in as ${c.user.tag}`);
-});
-
-client.on("interactionCreate", async interaction => {
-
-	const { commandName } = interaction;
-    
-    if (interaction.isAutocomplete()) {
-        let { autocomplete } = commands.get(commandName);
-        if(autocomplete) {
-            try {
-                await autocomplete(interaction, Database);
-            }
-            catch(error) {
-                console.error("Error occurred while executing command " + commandName);
-                console.error(error);
-            }
-        }
-        else {
-            console.error("Missing autocomplete for " + commandName);
-            // await interaction.reply({
-                // content: "Non-existent autocomplete when expected for " + commandName,
-                // ephemeral: true
-            // });
-        }
-    }
-    else if (interaction.isCommand()) {
-        let { execute } = commands.get(commandName);
-        if(execute) {
-            try {
-                await execute(interaction, Database);
-            }
-            catch(error) {
-                console.error("Error occurred while executing command " + commandName);
-                console.error(error);
-                await interaction.reply({
-                    content: "There was an error while executing this command!",
-                    ephemeral: true
-                });
-            }
-        }
-        else {
-            await interaction.reply({
-                content: "Non-existent command " + commandName,
-                ephemeral: true
-            });
-        }
-    }
-    else {
-        // do nothing
-    }
-});
-
 // Place your client and guild ids here
 const clientId = "918264011903086602";
 const guilds = [
@@ -125,39 +68,114 @@ const guilds = [
     "614168076065177620", //extinction unleashed
 ];
 
-(function () {
-    const token = process.env.BOT_TOKEN;
-    if(!token) {
-        console.error("Could not find token in .env");
-        return;
-    }
-    
-    for(let guildId of guilds) {
-        const rest = new REST({ version: "9" }).setToken(token);
-        (async () => {
-            try {
-                console.log("Started refreshing application (/) commands.");
+const HOST_LOCAL = "local";
+const HOST_CYCLIC = "cyclic";
+const VALID_HOSTS = [
+    HOST_LOCAL,
+    HOST_CYCLIC
+];
 
-                await rest.put(
-                    Routes.applicationGuildCommands(clientId, guildId),
-                    { body: commandData },
-                );
+const { BOT_HOST } = process.env ?? HOST_LOCAL;
 
-                console.log("Successfully reloaded application (/) commands.");
-            } catch (error) {
-                console.error(error);
-            }
-        })();
-    }
+if(!VALID_HOSTS.includes(BOT_HOST)) {
+    console.error(`Invalid host name: ${BOT_HOST}`);
+    console.error(`(Expected one of ${VALID_HOSTS.join(" | ")})`);
+    return;
+}
 
-    client.login(token);
-    
-    // code to make Cyclic not die
-    console.log("'express app' launching");
-    const express = require('express');
-    const app = express();
-    app.listen(8999, () => {
-
+if(BOT_HOST === HOST_CYCLIC) {
+    require("./cyclic.js")({ guilds, commandData });
+}
+else if(BOT_HOST === HOST_LOCAL) {
+    const client = new Client({
+        intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
     });
-})();
+    // When the client is ready, run this code (only once)
+    client.once("ready", c => {
+        console.log(`Ready! Logged in as ${c.user.tag}`);
+    });
+
+    client.on("interactionCreate", async interaction => {
+
+        const { commandName } = interaction;
+        
+        if (interaction.isAutocomplete()) {
+            let { autocomplete } = commands.get(commandName);
+            if(autocomplete) {
+                try {
+                    await autocomplete(interaction, Database);
+                }
+                catch(error) {
+                    console.error("Error occurred while executing command " + commandName);
+                    console.error(error);
+                }
+            }
+            else {
+                console.error("Missing autocomplete for " + commandName);
+                // await interaction.reply({
+                    // content: "Non-existent autocomplete when expected for " + commandName,
+                    // ephemeral: true
+                // });
+            }
+        }
+        else if (interaction.isCommand()) {
+            let { execute } = commands.get(commandName);
+            if(execute) {
+                try {
+                    await execute(interaction, Database);
+                }
+                catch(error) {
+                    console.error("Error occurred while executing command " + commandName);
+                    console.error(error);
+                    await interaction.reply({
+                        content: "There was an error while executing this command!",
+                        ephemeral: true
+                    });
+                }
+            }
+            else {
+                await interaction.reply({
+                    content: "Non-existent command " + commandName,
+                    ephemeral: true
+                });
+            }
+        }
+        else {
+            // do nothing
+        }
+    });
+
+    (function () {
+        const token = process.env.BOT_TOKEN;
+        if(!token) {
+            console.error("Could not find token in .env");
+            return;
+        }
+        
+        for(let guildId of guilds) {
+            const rest = new REST({ version: "9" }).setToken(token);
+            (async () => {
+                try {
+                    console.log("Started refreshing application (/) commands.");
+
+                    await rest.put(
+                        Routes.applicationGuildCommands(clientId, guildId),
+                        { body: commandData },
+                    );
+
+                    console.log("Successfully reloaded application (/) commands.");
+                } catch (error) {
+                    console.error(error);
+                }
+            })();
+        }
+
+        client.login(token);
+    })();
+}
+else {
+    console.error("Unhandled host name: ${BOT_HOST}");
+    console.error("(This error should not appear: Validated host name has no implementation.)");
+    return;
+}
 
