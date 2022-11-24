@@ -151,4 +151,13 @@ const guilds = [
     }
 
     client.login(token);
+    
+    // code to make Cyclic not die
+    console.log("'express app' launching");
+    const express = require('express');
+    const app = express();
+    app.listen(8999, () => {
+
+    });
 })();
+
