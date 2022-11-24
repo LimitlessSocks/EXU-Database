@@ -128,7 +128,7 @@ const guilds = [
     const envPath = path.join(__dirname, "..", ".env");
     const data = fs.readFileSync(envPath).toString();
     let token;
-    for(let [ match, name, value ] of data.matchAll(/(.+?)=(.+)/g)) {
+    for(let [ match, name, value ] of data.matchAll(/(.+?)="?([^"]+)"?/g)) {
         if(name === "BOT_TOKEN") {
             token = value;
         }
