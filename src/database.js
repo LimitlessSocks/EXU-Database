@@ -6,6 +6,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const fetch = require("node-fetch");
 
+require('dotenv').config();
+
 let Database = {
     cards: null,
     lastUpdated: null,
@@ -124,15 +126,7 @@ const guilds = [
 ];
 
 (function () {
-    console.log("Getting token from .env");
-    const envPath = path.join(__dirname, "..", ".env");
-    const data = fs.readFileSync(envPath).toString();
-    let token;
-    for(let [ match, name, value ] of data.matchAll(/(.+?)="?([^"]+)"?/g)) {
-        if(name === "BOT_TOKEN") {
-            token = value;
-        }
-    }
+    const token = process.env.BOT_TOKEN;
     if(!token) {
         console.error("Could not find token in .env");
         return;
