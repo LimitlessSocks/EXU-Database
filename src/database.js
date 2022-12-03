@@ -8,6 +8,9 @@ const fetch = require("node-fetch");
 
 require('dotenv').config();
 
+// const ART_SOURCE = "http://storage.googleapis.com/ygoprodeck.com/pics_artgame/";
+const ART_SOURCE = "https://images.ygoprodeck.com/images/cards_cropped";
+
 let Database = {
     cards: null,
     lastUpdated: null,
@@ -36,9 +39,7 @@ const loadDatabase = async function() {
         card.lname = card.name.toLowerCase();
         card.idString = card.id + "";
         card.exu_limit ??= 3;
-        card.src = card.src || (
-            "http://storage.googleapis.com/ygoprodeck.com/pics_artgame/" + card.serial_number + ".jpg"
-        );
+        card.src = card.src || (ART_SOURCE + card.serial_number + ".jpg");
     }
     console.log("assign database");
     // only update once we have all the information
