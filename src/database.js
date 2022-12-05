@@ -9,7 +9,7 @@ const fetch = require("node-fetch");
 require('dotenv').config();
 
 // const ART_SOURCE = "http://storage.googleapis.com/ygoprodeck.com/pics_artgame/";
-const ART_SOURCE = "https://images.ygoprodeck.com/images/cards_cropped";
+const ART_SOURCE = "https://images.ygoprodeck.com/images/cards_cropped/";
 
 let Database = {
     cards: null,
