@@ -49,7 +49,7 @@ const isNonEffect = (card) => {
     return card.cached_is_non_effect = false;
 };
 
-module.exports = (card) => {
+module.exports = (card, options = {}) => {
     let fields = [];
     
     let color = "#000000";
@@ -154,7 +154,14 @@ module.exports = (card) => {
     let limit = banlistLimit(card);
     fields.unshift({ name: "Type", value: type, inline: true });
     fields.push({ name: "EXU Banlist Status", value: limit, inline: true });
-    fields.push({ name: "Links", value: `[DuelingBook](https://www.duelingbook.com/card?id=${card.id}) · [EXU](https://limitlesssocks.github.io/EXU-Scrape/card?id=${card.id})` });
+    let links = `[DuelingBook](https://www.duelingbook.com/card?id=${card.id}) · [EXU](https://limitlesssocks.github.io/EXU-Scrape/card?id=${card.id})`;
+    if(options.natural) {
+        let search = encodeURI("?q=" + options.natural)
+            .replaceAll(".", "%2E")
+            .replaceAll(",", "%2C");
+        links += ` · [Query Link](https://limitlesssocks.github.io/EXU-Scrape/new-search${search})`;
+    }
+    fields.push({ name: "Links", value: links });
     
     return new MessageEmbed()
         .setColor(color)

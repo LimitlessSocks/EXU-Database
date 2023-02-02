@@ -22,7 +22,7 @@ command.execute = async (interaction, Database) => {
     
     if(!cards) return;
     
-    let embeds = cards.map(makeEmbed);
+    let embeds = cards.map(card => makeEmbed(card));
     await paginate(interaction, embeds);
 };
 command.autocomplete = async (interaction, Database) => {

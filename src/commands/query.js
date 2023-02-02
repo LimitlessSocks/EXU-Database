@@ -28,7 +28,7 @@ command.execute = async (interaction, Database) => {
         return;
     }
     
-    let embeds = cards.map(makeEmbed);
+    let embeds = cards.map(card => makeEmbed(card, { natural: input }));
     await paginate(interaction, embeds);
 };
 
