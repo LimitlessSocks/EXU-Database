@@ -4,17 +4,17 @@
  */
 
 const {
-  MessageActionRow,
+  ActionRowBuilder,
   Message,
-  MessageEmbed,
-  MessageButton,
+  EmbedBuilder,
+  ButtonBuilder,
 } = require("discord.js");
 
 /**
  * Creates a pagination embed
  * @param {Interaction} interaction
- * @param {MessageEmbed[]} pages
- * @param {MessageButton[]} buttonList
+ * @param {EmbedBuilder[]} pages
+ * @param {ButtonBuilder[]} buttonList
  * @param {number} timeout
  * @returns
  */
@@ -33,15 +33,18 @@ const paginationEmbed = async (
   if (buttonList.length !== 2) throw new Error("Need two buttons.");
 
   let page = 0;
+  
+  const ownerId = interaction.user.id;
+  const ownerName = `${interaction.user.username}#${interaction.user.discriminator}`;
 
-  const row = new MessageActionRow().addComponents(buttonList);
+  const row = new ActionRowBuilder().addComponents(buttonList);
 
   //has the interaction already been deferred? If not, defer the reply.
   if (interaction.deferred == false) {
     await interaction.deferReply();
   }
   
-  let oldFooters = pages.map(e => e.footer?.text);
+  let oldFooters = pages.map(e => e.data?.footer?.text);
   
   const updateFooter = () => {
     let text = `Page ${page + 1} / ${pages.length}`;
@@ -56,10 +59,13 @@ const paginationEmbed = async (
     components: [row],
     fetchReply: true,
   });
-
-  const filter = (i) =>
-    i.customId === buttonList[0].customId ||
-    i.customId === buttonList[1].customId;
+  
+  // why on earth does discord.js use snake_case here??
+  // XXX: this can't be stable, i expect this to change to customId in the future
+  const buttonIds = buttonList.map(button => button.data.custom_id);
+  
+  const filter = i =>
+    i.customId === buttonIds[0] || i.customId === buttonIds[1];
 
   const collector = await curPage.createMessageComponentCollector({
     filter,
@@ -67,11 +73,18 @@ const paginationEmbed = async (
   });
 
   collector.on("collect", async (i) => {
+    if(i.user.id !== ownerId) {
+        i.reply({
+            content: `This is ${ownerName}'s, not yours!`,
+            ephemeral: true
+        });
+        return;
+    }
     switch (i.customId) {
-      case buttonList[0].customId:
+      case buttonIds[0]:
         page = page > 0 ? --page : pages.length - 1;
         break;
-      case buttonList[1].customId:
+      case buttonIds[1]:
         page = page + 1 < pages.length ? ++page : 0;
         break;
       default:
@@ -87,7 +100,7 @@ const paginationEmbed = async (
 
   collector.on("end", (_, reason) => {
     if (reason !== "messageDelete") {
-      const disabledRow = new MessageActionRow().addComponents(
+      const disabledRow = new ActionRowBuilder().addComponents(
         buttonList[0].setDisabled(true),
         buttonList[1].setDisabled(true)
       );

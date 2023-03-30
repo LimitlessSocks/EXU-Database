@@ -1,9 +1,9 @@
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 const { COLORS } = require("./static.js");
 
 module.exports = card =>
-    new MessageEmbed()
+    new EmbedBuilder()
         .setColor(COLORS[card.monster_color] ?? COLORS[card.card_type] ?? "#000000")
         .setImage(card.src)
         .setTitle(card.name)
-        .setFooter({ text: card.username ?? "" });
+        .setFooter({ text: card.username || null });

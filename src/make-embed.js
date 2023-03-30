@@ -1,4 +1,4 @@
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 const escapeDiscord = require("./escape-discord.js");
 const banlistLimit = require("./banlist-status.js");
 const {
@@ -163,7 +163,7 @@ module.exports = (card, options = {}) => {
     }
     fields.push({ name: "Links", value: links });
     
-    return new MessageEmbed()
+    return new EmbedBuilder()
         .setColor(color)
         .setTitle(name)
         // .setDescription("")

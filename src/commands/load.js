@@ -12,8 +12,13 @@ command.data =
 		.setDescription("Reloads the database")
 
 command.execute = async (interaction, Database) => {
-    await Database.loadDatabase();
-    await interaction.reply("Database reloaded.");
+    try {
+        await Database.loadDatabase();
+        await interaction.reply("Database reloaded.");
+    }
+    catch(e) {
+        await interaction.reply("Something went wrong loading the database.");
+    }
 };
 
 module.exports = command;

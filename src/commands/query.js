@@ -24,7 +24,11 @@ command.execute = async (interaction, Database) => {
     let cards = queryNaturalInput(input);
     
     if(!cards.length) {
-        interaction.reply({ content: "No results found for " + input, ephemeral: true });
+        let reason = "";
+        if(/^[\w ]+$/.test(input)) {
+            reason = ". Did you mean to search by part of a card's name (\"" + input + "\")?";
+        }
+        interaction.reply({ content: "No results found for " + input + reason, ephemeral: true });
         return;
     }
     

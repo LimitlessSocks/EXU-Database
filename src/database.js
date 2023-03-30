@@ -1,5 +1,5 @@
 const { REST } = require("@discordjs/rest");
-const { Client, Intents } = require("discord.js");
+const { Client, IntentsBitField } = require("discord.js");
 const { Routes } = require("discord-api-types/v9");
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const fs = require("node:fs");
@@ -89,7 +89,7 @@ if(BOT_HOST === HOST_CYCLIC) {
 }
 else if(BOT_HOST === HOST_LOCAL) {
     const client = new Client({
-        intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]
+        intents: IntentsBitField.Flags.Guilds | IntentsBitField.Flags.GuildMessages
     });
     // When the client is ready, run this code (only once)
     client.once("ready", c => {
@@ -142,6 +142,7 @@ else if(BOT_HOST === HOST_LOCAL) {
             }
         }
         else {
+            // console.error("Unexpected interaction", interaction);
             // do nothing
         }
     });

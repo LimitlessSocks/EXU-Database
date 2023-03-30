@@ -1,4 +1,7 @@
-const { MessageButton } = require("discord.js");
+const {
+    ButtonBuilder,
+    ButtonStyle,
+} = require("discord.js");
 const paginationEmbed = require("./extern/pagination.js");
 
 module.exports = async (interaction, embeds, buttons) => {
@@ -7,15 +10,15 @@ module.exports = async (interaction, embeds, buttons) => {
     }
     
     if(!buttons) {
-        const previousButton = new MessageButton()
+        const previousButton = new ButtonBuilder()
             .setCustomId("previousbtn")
             .setLabel("Previous")
-            .setStyle("DANGER");
+            .setStyle(ButtonStyle.Danger);
 
-        const nextButton = new MessageButton()
+        const nextButton = new ButtonBuilder()
             .setCustomId("nextbtn")
             .setLabel("Next")
-            .setStyle("SUCCESS");
+            .setStyle(ButtonStyle.Success);
         buttons = [previousButton, nextButton];
     }
     const timeout = 30000;
