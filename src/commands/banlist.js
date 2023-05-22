@@ -19,7 +19,7 @@ command.data =
 command.execute = async (interaction, Database) => {
     let cards = await search(interaction, Database);
     
-    if(!cards.length) return;
+    if(!cards || !cards.length) return;
     
     let card = cards[0];
     let limit = banlistLimit(card);

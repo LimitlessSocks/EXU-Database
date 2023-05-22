@@ -8,6 +8,7 @@
 const {
     SlashCommandBuilder,
     userMention,
+    roleMention,
     codeBlock,
     inlineCode,
     time,
@@ -56,11 +57,13 @@ for(let i = 2; i <= PARAGRAPH_MAX; i++) {
 }
 
 // const BEAR = "277600188002992129";
-const BEAR = "728518668845187113";
+// const BEAR = "728518668845187113";
+// @FeedbackDeployedSquad
+const ROLE_NOTIFY_ID = "1110311894285299933";
 // #submission-feedback
 const FEEDBACK_DESTINATION = "641406822581796888";
 // #cat-team
-const BEAR_NOTIFICATION_DESTINATION = "716028795978776586";
+const FEEDBACK_NOTIFICATION_DESTINATION = "716028795978776586";
 const STAFF_ROLE = "614665426311446549";
 command.execute = async (interaction, Database) => {
     const { user, client, options } = interaction;
@@ -89,8 +92,8 @@ command.execute = async (interaction, Database) => {
     
     await feedbackChannel.send(message);
     await interaction.reply("Sent feedback at " + time(new Date()) + "!");
-    await client.channels.cache.get(BEAR_NOTIFICATION_DESTINATION)
-        .send(`${userMention(BEAR)} Feedback delivered for ${inlineCode(subName)}! Decision: ${decision}`);
+    await client.channels.cache.get(FEEDBACK_NOTIFICATION_DESTINATION)
+        .send(`${roleMention(ROLE_NOTIFY_ID)} Feedback delivered for ${inlineCode(subName)}! Decision: ${decision}`);
 };
 
 module.exports = command;
