@@ -28,6 +28,7 @@ const loadDatabase = async function() {
     
     for(let url of urls) {
         console.log("reading " + url);
+        // TODO: try again if we do not Successfully read
         const response = await fetch(head + url);
         const data = await response.json();
         console.log("done reading " + url + ", received " + Object.keys(data).length);
@@ -129,10 +130,15 @@ else if(BOT_HOST === HOST_LOCAL) {
                 catch(error) {
                     console.error("Error occurred while executing command " + commandName);
                     console.error(error);
-                    await interaction.reply({
-                        content: "There was an error while executing this command!",
-                        ephemeral: true
-                    });
+                    try {
+                        await interaction.reply({
+                            content: "There was an error while executing this command!",
+                            ephemeral: true
+                        });
+                    }
+                    catch(e) {
+                        console.error("Could not return error reply", e);
+                    }
                 }
             }
             else {
