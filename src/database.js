@@ -44,7 +44,8 @@ const loadDatabase = async function() {
     console.log("assign database");
     // only update once we have all the information
     Database.cards = db;
-    Database.lastUpdated = new Date().valueOf(); 
+    Database.lastUpdated = new Date().valueOf();
+    console.log("database finished loading");
 };
 Database.loadDatabase = loadDatabase;
 loadDatabase();
@@ -93,7 +94,7 @@ else if(BOT_HOST === HOST_LOCAL) {
     });
     // When the client is ready, run this code (only once)
     client.once("ready", c => {
-        console.log(`Ready! Logged in as ${c.user.tag}`);
+        console.log(`Client is ready! Logged in as ${c.user.tag}`);
     });
 
     client.on("interactionCreate", async interaction => {
@@ -158,7 +159,7 @@ else if(BOT_HOST === HOST_LOCAL) {
             const rest = new REST({ version: "9" }).setToken(token);
             (async () => {
                 try {
-                    console.log("Started refreshing application (/) commands.");
+                    console.log(`Started refreshing application (/) commands for guild ${guildId}.`);
 
                     await rest.put(
                         Routes.applicationGuildCommands(clientId, guildId),

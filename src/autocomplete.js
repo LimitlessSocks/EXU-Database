@@ -3,6 +3,8 @@ const MAX_LENGTH = 25;
 // TODO: move more-searched items to the front?
 // todo: fuzzy search
 
+// we need to respond within 3 seconds, so if we are taking too long (2 seconds), return prematurely
+const MAX_TIME = 2000;
 exports.autocomplete = async (interaction, Database, options = {}) => {
     let customOnly = options.customOnly ?? false;
     let suggestRestricted = options.suggestRestricted ?? false;
@@ -11,8 +13,14 @@ exports.autocomplete = async (interaction, Database, options = {}) => {
     let autos = [];
     let term = interaction.options.getString("name").toLowerCase();
     let restrictedCount = 0;
+    let startTime = new Date().valueOf();
+    let currentTime;
     // let custom = interaction.options.getBoolean("custom");
     for(let [key, value] of Object.entries(Database.cards)) {
+        currentTime = new Date().valueOf() 
+        if(currentTime - startTime >= MAX_TIME) {
+            break;
+        }
         if(customOnly) {
             if(!value.custom) continue;
         }
