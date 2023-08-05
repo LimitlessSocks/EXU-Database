@@ -51,7 +51,7 @@ command.execute = async (interaction, Database) => {
     
     let text = "__**" + card.name + "**__ [" + secondary + "]\n" + effect;
     
-    await interaction.reply(text);
+    await interaction.editReply(text);
 };
 command.autocomplete = async (interaction, Database) => {
     return await autocomplete(interaction, Database);

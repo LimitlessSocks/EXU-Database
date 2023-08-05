@@ -21,6 +21,7 @@ command.execute = async (interaction, Database) => {
     let input = interaction.options.getString("input");
     TimedConsole.log("commands/query.js: Natural input query: ", input);
     
+    await interaction.deferReply();
     initialize(Database);
     let cards = queryNaturalInput(input);
     
@@ -29,7 +30,7 @@ command.execute = async (interaction, Database) => {
         if(/^[\w ]+$/.test(input)) {
             reason = ". Did you mean to search by part of a card's name (`\"" + input + "\"`)?";
         }
-        interaction.reply({ content: "No results found for " + input + reason, ephemeral: true });
+        interaction.editReply({ content: "No results found for " + input + reason, ephemeral: true });
         return;
     }
     
