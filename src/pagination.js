@@ -6,7 +6,12 @@ const paginationEmbed = require("./extern/pagination.js");
 
 module.exports = async (interaction, embeds, buttons) => {
     if(embeds.length === 1) {
-        return await interaction.reply({ embeds: embeds });
+        if(interaction.deferred) {
+            return await interaction.editReply({ embeds: embeds });
+        }
+        else {
+            return await interaction.reply({ embeds: embeds });
+        }
     }
     
     if(!buttons) {

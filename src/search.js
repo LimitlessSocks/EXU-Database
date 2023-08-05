@@ -2,7 +2,9 @@ const FuzzyDBSearcher = require("./fuzzy.js");
 const TimedConsole = require("./timed-console.js");
 
 exports.search = async (interaction, Database) => {
-    await interaction.deferReply();
+    if(!interaction.deferred) {
+        await interaction.deferReply();
+    }
     // TODO: assert Database is live
     FuzzyDBSearcher.update(Database);
     let term = interaction.options.getString("name");
