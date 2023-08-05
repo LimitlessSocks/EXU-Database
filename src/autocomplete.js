@@ -1,3 +1,5 @@
+const TimedConsole = require("./timed-console.js");
+
 const MAX_LENGTH = 25;
 
 // TODO: move more-searched items to the front?
@@ -26,7 +28,7 @@ exports.autocomplete = async (interaction, Database, options = {}) => {
         }
         let { lname, name, idString } = value;
         if(!lname) {
-            console.error("LNAME MISSING:", value);
+            TimedConsole.error("autocomplete: LNAME MISSING:", value);
         }
         if(lname.includes(term)) {
             let dname = name;
@@ -54,5 +56,10 @@ exports.autocomplete = async (interaction, Database, options = {}) => {
             break;
         }
     }
-    interaction.respond(autos.slice(0, MAX_LENGTH-1));
+    try {
+        await interaction.respond(autos.slice(0, MAX_LENGTH-1));
+    }
+    catch(e) {
+        TimedConsole.error("autocomplete: Error in attempting to autocomplete:", e);
+    }
 };

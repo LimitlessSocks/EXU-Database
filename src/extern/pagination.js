@@ -1,7 +1,9 @@
 /*
  * copied from https://raw.githubusercontent.com/ryzyx/discordjs-button-pagination/interaction/index.js
- * but modifying setFooter calls
+ * but modifying many things
  */
+
+const TimedConsole = require("./../timed-console.js");
 
 const {
   ActionRowBuilder,
@@ -40,8 +42,13 @@ const paginationEmbed = async (
   const row = new ActionRowBuilder().addComponents(buttonList);
 
   //has the interaction already been deferred? If not, defer the reply.
-  if (interaction.deferred == false) {
-    await interaction.deferReply();
+  if (!interaction.deferred) {
+    try {
+      await interaction.deferReply();
+    }
+    catch(e) {
+      TimedConsole.error("paginationEmbed: Could not defer reply:", e);
+    }
   }
   
   let oldFooters = pages.map(e => e.data?.footer?.text);

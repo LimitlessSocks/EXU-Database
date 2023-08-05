@@ -3,6 +3,7 @@ const { autocomplete } = require("./../autocomplete.js");
 const { initialize, queryNaturalInput } = require("./../tag-extract.js");
 const makeEmbed = require("./../make-embed.js");
 const paginate = require("./../pagination.js");
+const TimedConsole = require("./../timed-console.js");
 
 const command = {};
 command.name = "query";
@@ -18,7 +19,7 @@ command.data =
 
 command.execute = async (interaction, Database) => {
     let input = interaction.options.getString("input");
-    console.log("Natural input query: ", input);
+    TimedConsole.log("commands/query.js: Natural input query: ", input);
     
     initialize(Database);
     let cards = queryNaturalInput(input);
@@ -26,7 +27,7 @@ command.execute = async (interaction, Database) => {
     if(!cards.length) {
         let reason = "";
         if(/^[\w ]+$/.test(input)) {
-            reason = ". Did you mean to search by part of a card's name (\"" + input + "\")?";
+            reason = ". Did you mean to search by part of a card's name (`\"" + input + "\"`)?";
         }
         interaction.reply({ content: "No results found for " + input + reason, ephemeral: true });
         return;

@@ -5,6 +5,7 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const fs = require("node:fs");
 const path = require("node:path");
 const fetch = require("node-fetch");
+const TimedConsole = require("./timed-console.js");
 
 require('dotenv').config();
 
@@ -19,7 +20,7 @@ let Database = {
 // obtain the database
 const loadDatabase = async function() {
     const db = {};
-    console.log("reading databases");
+    TimedConsole.log("loadDatabase: reading databases");
     const head = "https://raw.githubusercontent.com/LimitlessSocks/EXU-Scrape/master/";
     const urls = [
         "ycg.json",
@@ -27,14 +28,14 @@ const loadDatabase = async function() {
     ];
     
     for(let url of urls) {
-        console.log("reading " + url);
+        TimedConsole.log("loadDatabase: reading " + url);
         // TODO: try again if we do not Successfully read
         const response = await fetch(head + url);
         const data = await response.json();
-        console.log("done reading " + url + ", received " + Object.keys(data).length);
+        TimedConsole.log("loadDatabase: done reading " + url + ", received " + Object.keys(data).length);
         Object.assign(db, data);
     }
-    console.log("pre-caching search terms");
+    TimedConsole.log("loadDatabase: pre-caching search terms");
     // process db, cache search names
     for(let card of Object.values(db)) {
         card.lname = card.name.toLowerCase();
@@ -42,11 +43,11 @@ const loadDatabase = async function() {
         card.exu_limit ??= 3;
         card.src = card.src || (ART_SOURCE + card.serial_number + ".jpg");
     }
-    console.log("assign database");
+    TimedConsole.log("loadDatabase: assign database");
     // only update once we have all the information
     Database.cards = db;
     Database.lastUpdated = new Date().valueOf();
-    console.log("database finished loading");
+    TimedConsole.log("loadDatabase: database finished loading");
 };
 Database.loadDatabase = loadDatabase;
 loadDatabase();
@@ -57,11 +58,11 @@ const commandFiles = fs.readdirSync(path.join(__dirname, "commands"))
     .filter(file => file.endsWith(".js"));
 
 for (const file of commandFiles) {
-    console.log("-- parsing " + file);
+    TimedConsole.log("main: -- parsing " + file);
 	const cmd = require(`./commands/${file}`);
 	commandData.push(cmd.data.toJSON());
     commands.set(cmd.name, cmd);
-    console.log("---- ", cmd.name);
+    TimedConsole.log("main: ---- ", cmd.name);
 }
 
 // Place your client and guild ids here
@@ -81,8 +82,8 @@ const VALID_HOSTS = [
 const { BOT_HOST } = process.env ?? HOST_LOCAL;
 
 if(!VALID_HOSTS.includes(BOT_HOST)) {
-    console.error(`Invalid host name: ${BOT_HOST}`);
-    console.error(`(Expected one of ${VALID_HOSTS.join(" | ")})`);
+    TimedConsole.error(`main: Invalid host name: ${BOT_HOST}`);
+    TimedConsole.error(`main: (Expected one of ${VALID_HOSTS.join(" | ")})`);
     return;
 }
 
@@ -95,26 +96,27 @@ else if(BOT_HOST === HOST_LOCAL) {
     });
     // When the client is ready, run this code (only once)
     client.once("ready", c => {
-        console.log(`Client is ready! Logged in as ${c.user.tag}`);
+        TimedConsole.log(`client.ready: Client is ready! Logged in as ${c.user.tag}`);
     });
 
     client.on("interactionCreate", async interaction => {
-
         const { commandName } = interaction;
+        TimedConsole.log(`client.interactionCreate: Command /${commandName} created at`, TimedConsole.formatter.format(interaction.createdAt));
         
         if (interaction.isAutocomplete()) {
+            TimedConsole.log(`client.interactionCreate: /${commandName}'s autocompletion`);
             let { autocomplete } = commands.get(commandName);
             if(autocomplete) {
                 try {
                     await autocomplete(interaction, Database);
                 }
                 catch(error) {
-                    console.error("Error occurred while executing command " + commandName);
-                    console.error(error);
+                    TimedConsole.error("client.interactionCreate: Error occurred while executing command " + commandName);
+                    TimedConsole.error("client.interactionCreate:", error);
                 }
             }
             else {
-                console.error("Missing autocomplete for " + commandName);
+                TimedConsole.error("client.interactionCreate: Missing autocomplete for " + commandName);
                 // await interaction.reply({
                     // content: "Non-existent autocomplete when expected for " + commandName,
                     // ephemeral: true
@@ -122,14 +124,15 @@ else if(BOT_HOST === HOST_LOCAL) {
             }
         }
         else if (interaction.isCommand()) {
+            TimedConsole.log(`client.interactionCreate: /${commandName}'s command execution`);
             let { execute } = commands.get(commandName);
             if(execute) {
                 try {
                     await execute(interaction, Database);
                 }
                 catch(error) {
-                    console.error("Error occurred while executing command " + commandName);
-                    console.error(error);
+                    TimedConsole.error("client.interactionCreate: Error occurred while executing command " + commandName);
+                    TimedConsole.error("client.interactionCreate:", error);
                     try {
                         await interaction.reply({
                             content: "There was an error while executing this command!",
@@ -137,7 +140,7 @@ else if(BOT_HOST === HOST_LOCAL) {
                         });
                     }
                     catch(e) {
-                        console.error("Could not return error reply", e);
+                        TimedConsole.error("client.interactionCreate: Could not return error reply", e);
                     }
                 }
             }
@@ -149,15 +152,16 @@ else if(BOT_HOST === HOST_LOCAL) {
             }
         }
         else {
-            // console.error("Unexpected interaction", interaction);
+            // TimedConsole.error("client.interactionCreate: Unexpected interaction", interaction);
             // do nothing
         }
     });
-
+    
+    // closure for token lifetime
     (function () {
         const token = process.env.BOT_TOKEN;
         if(!token) {
-            console.error("Could not find token in .env");
+            TimedConsole.error(".env closure: Could not find token in .env");
             return;
         }
         
@@ -165,16 +169,16 @@ else if(BOT_HOST === HOST_LOCAL) {
             const rest = new REST({ version: "9" }).setToken(token);
             (async () => {
                 try {
-                    console.log(`Started refreshing application (/) commands for guild ${guildId}.`);
+                    TimedConsole.log(`.env closure: Started refreshing application (/) commands for guild ${guildId}.`);
 
                     await rest.put(
                         Routes.applicationGuildCommands(clientId, guildId),
                         { body: commandData },
                     );
 
-                    console.log("Successfully reloaded application (/) commands.");
+                    TimedConsole.log(`.env closure: Successfully reloaded application (/) commands for guild ${guildId}.`);
                 } catch (error) {
-                    console.error(error);
+                    TimedConsole.error(".env closure:", error);
                 }
             })();
         }
@@ -183,8 +187,7 @@ else if(BOT_HOST === HOST_LOCAL) {
     })();
 }
 else {
-    console.error("Unhandled host name: ${BOT_HOST}");
-    console.error("(This error should not appear: Validated host name has no implementation.)");
+    TimedConsole.error("main: Unhandled host name: ${BOT_HOST}");
+    TimedConsole.error("main: (This error should not appear: Validated host name has no implementation.)");
     return;
 }
-
