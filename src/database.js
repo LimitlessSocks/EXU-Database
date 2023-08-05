@@ -17,6 +17,7 @@ let Database = {
     lastUpdated: null,
 };
 
+const CACHE_LOCATION = "./cache.json";
 // obtain the database
 const loadDatabase = async function() {
     const db = {};
@@ -27,21 +28,49 @@ const loadDatabase = async function() {
         "db.json",
     ];
     
-    for(let url of urls) {
-        TimedConsole.log("loadDatabase: reading " + url);
-        // TODO: try again if we do not Successfully read
-        const response = await fetch(head + url);
-        const data = await response.json();
-        TimedConsole.log("loadDatabase: done reading " + url + ", received " + Object.keys(data).length);
-        Object.assign(db, data);
+    let useLocal = !Database.cards;
+    
+    if(useLocal) {
+        // TODO: use promises?
+        useLocal = fs.existsSync(CACHE_LOCATION);
+        if(useLocal) {
+            TimedConsole.log("loadDatabase: cached resource exist, populating initial database");
+        }
+        else {
+            TimedConsole.log("loadDatabase: using remote resource to populate cache and initial database");
+        }
     }
-    TimedConsole.log("loadDatabase: pre-caching search terms");
-    // process db, cache search names
-    for(let card of Object.values(db)) {
-        card.lname = card.name.toLowerCase();
-        card.idString = card.id + "";
-        card.exu_limit ??= 3;
-        card.src = card.src || (ART_SOURCE + card.serial_number + ".jpg");
+    else {
+        TimedConsole.log("loadDatabase: refreshing cache and database with new resources");
+    }
+    
+    if(useLocal) {
+        TimedConsole.log("loadDatabase: reading " + CACHE_LOCATION);
+        let rawContents = fs.readFileSync(CACHE_LOCATION);
+        let data = JSON.parse(rawContents);
+        Object.assign(db, data);
+        TimedConsole.log("loadDatabase: done reading " + CACHE_LOCATION + ", received " + Object.keys(data).length);
+    }
+    else {
+        for(let url of urls) {
+            TimedConsole.log("loadDatabase: reading " + head + url);
+            // TODO: try again if we do not Successfully read (e.g. due to poor connection)
+            // w/ max retry count e.g. 3
+            const response = await fetch(head + url);
+            const data = await response.json();
+            TimedConsole.log("loadDatabase: done reading " + head + url + ", received " + Object.keys(data).length);
+            Object.assign(db, data);
+        }
+        TimedConsole.log("loadDatabase: pre-caching search terms");
+        // process db, cache search names
+        for(let card of Object.values(db)) {
+            card.lname = card.name.toLowerCase();
+            card.idString = card.id + "";
+            card.exu_limit ??= 3;
+            card.src = card.src || (ART_SOURCE + card.serial_number + ".jpg");
+        }
+        TimedConsole.log("loadDatabase: saving local copy of database");
+        fs.writeFileSync(CACHE_LOCATION, JSON.stringify(db));
     }
     TimedConsole.log("loadDatabase: assign database");
     // only update once we have all the information
