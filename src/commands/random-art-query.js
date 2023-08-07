@@ -17,16 +17,17 @@ command.data =
 command.execute = async (interaction, Database) => {
     let input = interaction.options.getString("input");
     
+    await interaction.deferReply();
     initialize(Database);
     let cards = queryNaturalInput(input);
     
     if(!cards.length) {
-        interaction.reply({ content: "No results found for " + input, ephemeral: true });
+        interaction.editReply({ content: "No results found for " + input, ephemeral: true });
         return;
     }
     
     let card = cards[Math.random() * cards.length | 0];
-    await interaction.reply({ embeds: [makeArtEmbed(card)] });
+    await interaction.editReply({ embeds: [makeArtEmbed(card)] });
 };
 
 module.exports = command;

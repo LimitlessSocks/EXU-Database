@@ -24,7 +24,7 @@ command.execute = async (interaction, Database) => {
     let card = cards[0];
     let limit = banlistLimit(card);
     
-    await interaction.reply(`**${card.name}** is at ${limit}.`);
+    await interaction.editReply(`**${card.name}** is at ${limit}.`);
 };
 command.autocomplete = async (interaction, Database) => {
     return await autocomplete(interaction, Database, {

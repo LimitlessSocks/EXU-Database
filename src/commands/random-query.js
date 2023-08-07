@@ -17,18 +17,20 @@ command.data =
 command.execute = async (interaction, Database) => {
     let input = interaction.options.getString("input");
     
+    await interaction.deferReply();
     initialize(Database);
     let cards = queryNaturalInput(input);
     
     if(!cards.length) {
-        interaction.reply({ content: "No results found for " + input, ephemeral: true });
+        // ephemeral doesn't work with deferred replies
+        interaction.editReply({ content: "No results found for " + input/*, ephemeral: true*/ });
         return;
     }
     
     let card = cards[Math.random() * cards.length | 0];
     
     let embed = makeEmbed(card);
-    await interaction.reply({
+    await interaction.editReply({
         embeds: [embed],
     });
 };
