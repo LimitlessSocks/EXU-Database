@@ -1,6 +1,5 @@
 let DEBUG = false;
 const debug = (...args) => DEBUG && console.log(...args);
-let isNode = typeof process !== "undefined";
 
 class Memory {
     constructor() {
@@ -99,7 +98,9 @@ const PROPER_MONSTER_TYPES = [
     "Insect", "Machine", "Plant", "Psychic", "Pyro",
     "Reptile", "Rock", "Sea Serpent", "Spellcaster",
     "Thunder", "Warrior", "Winged Beast", "Wyrm",
-    "Yokai", "Zombie", "Creator God", "Divine-Beast"
+    "Yokai", "Zombie", "Creator God", "Divine-Beast",
+    "Omega Psychic", "High Dragon", "Celestial Warrior",
+    "Magical Knight", "Cyborg", "Galaxy", "Illusion"
 ];
 const getProperMonsterType = getProper(PROPER_MONSTER_TYPES);
 
@@ -169,9 +170,20 @@ const INDICATORS = [
     new TagIndicator(/limit(ed)?/, () => ({ limit: "1" })),
     new TagIndicator(/unlimit(ed)?/, () => ({ limit: "3" })),
     new TagIndicator(/ban(ed)?/, () => ({ limit: "0" })),
+    new TagIndicator(/non[- ]?effect|effectless/, () => ({ type: "noneffect" })),
     new TagIndicator(/(?:dated?|added|created|made)\s*(>=?|<=?|[/!]?==?|before|after)?\s*(\d{4}|\d+\/\d+\/\d+)/, (match) => ({
         dateCompare: getComparison(match[1]),
         date: match[2],
+    })).rememberParameter(),
+    new TagIndicator(/(?:ac|attr(?:ibute)?count|#attr(?:ibute)?)\s*(>=?|<=?|[/!]?==?)?\s*(\d+)/i, (match) => ({
+        type: "monster",
+        attributeCountCompare: getComparison(match[1]),
+        attributeCount: match[2],
+    })).rememberParameter(),
+    new TagIndicator(/(?:tc|typecount|#type)\s*(>=?|<=?|[/!]?==?)?\s*(\d+)/i, (match) => ({
+        type: "monster",
+        typeCountCompare: getComparison(match[1]),
+        typeCount: match[2],
     })).rememberParameter(),
     new TagIndicator(/link(?:[- ]|\s*(>=?|<=?|[/!]?==?))?\s*(\d+)\s*(or\s*(higher|more|lower|less))?/i, (match) => ({
         type: "monster",
@@ -179,7 +191,7 @@ const INDICATORS = [
         levelCompare: getComparison(match[3] || match[1]),
         level: match[2],
     })).rememberParameter(),
-    new TagIndicator(/(level\/rank|rank\/level)\s*(\d+)/i, (match, memory) => (
+    new TagIndicator(/(level\s*\/\s*rank|rank\s*\/\s*level)\s*(\d+)/i, (match, memory) => (
         memory.lastParameter = {
             type: "monster",
             level: match[2],
@@ -249,6 +261,13 @@ const INDICATORS = [
     new TagIndicator(/public/i, (match) => ({
         visibility: "1",
     })),
+    new TagIndicator(/normal\s*spell\s*\/\s*trap/i, (match) => [{
+        kind: "Normal",
+    }].concat(wrapParens([
+        { type: "spell" },
+        OPERATOR_INLINE_OR,
+        { type: "trap" }
+    ]))),
     new TagIndicator(/normal\s*(spell|trap)/i, (match) => ({
         type: match[1].toLowerCase(),
         kind: "Normal",
@@ -276,10 +295,21 @@ const INDICATORS = [
                 ]);
         }
     }),
+    new TagIndicator(/\[\[((?:\][^\]]|.)+?)\]\]/, (match) => wrapParens([
+        { effect: match[1] },
+        OPERATOR_INLINE_OR,
+        { name: match[1] },
+    ])),
+    new TagIndicator(/(?:pend:)\s*\[([^[\]]+)\]/, (match) => ({
+        pend_effect: match[1],
+    })),
+    new TagIndicator(/(?:text:)\s*\[([^[\]]+)\]/, (match) => ({
+        main_effect: match[1],
+    })),
     new TagIndicator(/\[([^[\]]+)\]/, (match) => ({
         effect: match[1],
     })),
-    new TagIndicator(/beast[ -]?warrior|aqua|beast|cyberse|dinosaur|dragon|fairy|fiend|fish|insect|machine|plant|psychic|pyro|reptile|rock|sea[ -]?serpent|spellcaster|thunder|warrior|winged[ -]?beast|wyrm|yokai|zombie|creator[ -]?god|divine[ -]?beast/i, (match) => ({
+    new TagIndicator(/beast[ -]?warrior|aqua|beast|cyberse|dinosaur|dragon|fairy|fiend|fish|insect|machine|plant|psychic|pyro|reptile|rock|sea[ -]?serpent|spellcaster|thunder|warrior|winged[ -]?beast|wyrm|yokai|zombie|creator[ -]?god|divine[ -]?beast|omega psychic|high dragon|cyborg|illusion|celestial warrior|magical knight|galaxy/i, (match) => ({
         type: "monster",
         monsterType: getProperMonsterType(match[0]),
     })),
@@ -290,6 +320,13 @@ const INDICATORS = [
     new TagIndicator(/spell|trap|monster/i, (match) => ({
         type: match[0].toLowerCase()
     })),
+    new TagIndicator(/(continuous|quick[- ]*play|equip|normal|counter|field)\s*spell\s*\/\s*trap/i, (match) => [{
+        kind: getProperSpellTrapType(match[1]),
+    }].concat(wrapParens([
+        { type: "spell" },
+        OPERATOR_INLINE_OR,
+        { type: "trap" }
+    ]))),
     new TagIndicator(/(continuous|quick[- ]*play|equip|normal|counter|field)\s*(spell|trap)?/i, (match) => ({
         type: (match[2] || "any").toLowerCase(),
         kind: getProperSpellTrapType(match[1]),
@@ -327,9 +364,18 @@ const INDICATORS = [
     }),
 ];
 
+const MATCH_FLOATING_ATKDEF = /(^|[a-zA-Z][^\w;]*)(\d+)\s*(atk|def)([^\d]*)(?![a-zA-Z])/;
+const MAX_ITER = 20;
+const autoSeparate = (str) => {
+    for(let i = 0; i < MAX_ITER; i++) {
+        str = str.replace(MATCH_FLOATING_ATKDEF, "$1; $2 $3$4");
+    }
+    return str;
+};
+
 class TagExtractor {
     constructor(input) {
-        this.input = input;
+        this.input = autoSeparate(input);
         this.index = 0;
         this.output = [];
         this.memory = new Memory();
@@ -575,7 +621,7 @@ const condenseQuery = (queryList, createFilter=CardViewer.createFilter) => {
     return result;
 };
 
-if(isNode) {
+if(typeof process !== "undefined") {
     module.exports = {
         TagExtractor: TagExtractor,
         naturalInputToQuery: naturalInputToQuery,

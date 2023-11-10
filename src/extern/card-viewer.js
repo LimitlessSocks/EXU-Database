@@ -306,7 +306,7 @@ const RetrainMap = {
     2533677: 8825,      //Sengen Taisha -> Amano-Iwato
     2050037: 5788,      //Majestic Ivory Chaoserpent -> White Dragon Wyverburster
     1793538: 6697,      //Masked HERO Dusk Law -> Masked HERO Dark Law
-    1731744: 10510,     //Artifact Ame-No-Nuboku -> Artifact Dagda
+    // 1731744: 10510,     //Artifact Ame-No-Nuboku -> Artifact Dagda
     1653369: 3057,      //Naturia Baihu -> Naturia Beast
     1638076: 5684,      //Horror of the Depths -> Abyss Dweller
     1319245: 5167,      //Lavalval Shadow -> Lavalval Chain
@@ -349,7 +349,9 @@ CardViewer.Database.setInitial = function (db) {
     CardViewer.Database.cards = db;
 };
 CardViewer.Database.initialReadAll = async function (...names) {
-    let promises = names.map(name => fetch(name).then(response => response.json()));
+    let promises = names
+        .filter(name => name !== null)
+        .map(name => fetch(name).then(response => response.json()));
     
     let dbs = await Promise.all(promises);
     
@@ -522,7 +524,7 @@ CardViewer.Filters.isNonEffect = (card) => {
     
     if(CardViewer.Filters.isRitual(card)) {
         let sentences = card.effect
-            .replace(/".+?"/g, "")
+            .replace(/[“"”].+?[“"”]/g, "")
             .replace(/\.$/g, "")
             .split(".");
         
@@ -532,7 +534,7 @@ CardViewer.Filters.isNonEffect = (card) => {
     if(CardViewer.Filters.isExtraDeck(card)) {
         let parsed = card.effect
             .replace(/\(.+?\)/g, "")
-            .replace(/".+?"/g, "")
+            .replace(/[“"”].+?[“"”]/g, "")
         let paras = parsed.trim().split(/\r?\n|\r/g);
         let sentences = parsed.split(".");
         let isNonEffect = paras.length === 1 && sentences.length === 1;
@@ -1006,6 +1008,28 @@ CardViewer.createFilter = function (query, exclude = null) {
         }
     }
     
+    if(query.attributeCount) {
+        let attributeCount = parseInt(query.attributeCount, 10);
+        if(!Number.isNaN(attributeCount)) {
+            filters.push(CardViewer.comparingComparator(
+                attributeCount,
+                query.attributeCountCompare || "equal",
+                _F.propda("attribute_count")
+            ));
+        }
+    }
+    
+    if(query.typeCount) {
+        let typeCount = parseInt(query.typeCount, 10);
+        if(!Number.isNaN(typeCount)) {
+            filters.push(CardViewer.comparingComparator(
+                typeCount,
+                query.typeCountCompare || "equal",
+                _F.propda("type_count")
+            ));
+        }
+    }
+    
     if(query.atk) {
         filters.push(CardViewer.comparingComparator(
             query.atk,
@@ -1229,6 +1253,26 @@ const getLinkArrowText = (arrows) => {
     return result;
 };
 
+const setMonsterAttributeIcons = (card, attribute) => {
+    if(card.attribute_count > 1) {
+        attribute = [ attribute ];
+        while(attribute.length < card.attribute_count) {
+            attribute.push(attribute[0].clone());
+        }
+        card.attribute.split("/").forEach((attr, i) => {
+            attribute[i].attr("src", getAttribute(attr));
+        });
+    }
+    else if(card.attribute_count === 0) {
+        attribute = [];
+    }
+    else {
+        attribute.attr("src", getAttribute(card.attribute));
+    }
+    
+    return attribute;
+};
+
 // CardViewer.
 CardViewer.composeResultSmall = function (card) {
     card.src = card.src || (
@@ -1275,7 +1319,7 @@ CardViewer.composeResultSmall = function (card) {
     
     let linkArrows;
     if(card.card_type === "Monster") {
-        attribute.attr("src", getAttribute(card.attribute))
+        attribute = setMonsterAttributeIcons(card, attribute);
         let kind = [];
         
         let levelIndicator;
@@ -1435,7 +1479,7 @@ CardViewer.composeResult = function (card) {
     
     let linkArrows;
     if(card.card_type === "Monster") {
-        attribute.attr("src", getAttribute(card.attribute))
+        attribute = setMonsterAttributeIcons(card, attribute);
         let kind = [];
         
         let levelIndicator;
