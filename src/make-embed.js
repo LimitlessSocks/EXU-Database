@@ -65,7 +65,11 @@ module.exports = (card, options = {}) => {
         if(card.monster_color == "Normal") {
             effect = `*${effect}*`;
         }
-        typeEmoji = EMOJI[card.type.replace(/ |-/g, "")];
+        typeEmoji = card.type
+            .split("/")
+            .map(type => EMOJI[type.replace(/ |-/g, "")])
+            .join("");
+        
         let secondType;
         if(card.pendulum) {
             effect = "**[Pendulum Effect]**\n" + card.pendulum_effect + "\n──────────────────────────────────\n**[Monster Effect]**\n" + effect;
@@ -117,7 +121,11 @@ module.exports = (card, options = {}) => {
             liEmoji = "";
         }
         
-        fields.push({ name: "Attribute", value: EMOJI[card.attribute] + " " + card.attribute, inline: true });
+        let attributeEmoji = card.attribute
+            .split("/")
+            .map(attr => EMOJI[attr])
+            .join("");
+        fields.push({ name: "Attribute", value: attributeEmoji + " " + card.attribute, inline: true });
         fields.push({ name: levelIndicator, value: liEmoji + card.level + "", inline: true });
         
         if(card.monster_color === "Link") {

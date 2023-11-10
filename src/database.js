@@ -23,8 +23,9 @@ const loadDatabase = async function() {
     const db = {};
     TimedConsole.log("loadDatabase: reading databases");
     const head = "https://raw.githubusercontent.com/LimitlessSocks/EXU-Scrape/master/";
+    // const head = "./../../EXU-Scrape/";
     const urls = [
-        "ycg.json",
+        // "ycg.json",
         "db.json",
     ];
     
@@ -56,10 +57,18 @@ const loadDatabase = async function() {
             TimedConsole.log("loadDatabase: reading " + head + url);
             // TODO: try again if we do not Successfully read (e.g. due to poor connection)
             // w/ max retry count e.g. 3
-            const response = await fetch(head + url);
-            const data = await response.json();
-            TimedConsole.log("loadDatabase: done reading " + head + url + ", received " + Object.keys(data).length);
-            Object.assign(db, data);
+            if(head.startsWith("http")) {
+                const response = await fetch(head + url);
+                const data = await response.json();
+                TimedConsole.log("loadDatabase: done reading " + head + url + ", received " + Object.keys(data).length);
+                Object.assign(db, data);
+            }
+            else {
+                const response = fs.readFileSync(head + url);
+                const data = JSON.parse(response);
+                TimedConsole.log("loadDatabase: done reading !! debug testing local resource !! " + head + url + ", received " + Object.keys(data).length);
+                Object.assign(db, data);
+            }
         }
         TimedConsole.log("loadDatabase: pre-caching search terms");
         // process db, cache search names
@@ -99,6 +108,8 @@ const clientId = "918264011903086602";
 const guilds = [
     "743977258762633246", //sock's test server
     "614168076065177620", //extinction unleashed
+    // "820940036576903169", //knight's server
+    //todo:make public?
 ];
 
 const HOST_LOCAL = "local";
