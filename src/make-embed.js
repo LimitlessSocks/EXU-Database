@@ -89,11 +89,11 @@ module.exports = (card, options = {}) => {
                 secondType = "/" + card.monster_color;
             }
         }
-        if(card.effect.includes("FLIP:")) {
+        if(/*card.effect.includes("FLIP:") || */card.flip === 1) {
             secondType += "/Flip";
         }
         else if(card.ability) {
-            secondType += "/" + card.ability;
+            secondType += "/" + card.ability.replace(/ /g, "");
         }
         
         type += secondType;
