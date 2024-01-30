@@ -2,6 +2,7 @@ const CardViewer = {
     autoSearch: false,
     Database: {
         cards: null,
+        cardsIdsByName: null,
     },
     Filters: {
         Dictionary: null,
@@ -29,6 +30,26 @@ const isNode = typeof window === "undefined";
 if(isNode) {
     window = { DEBUG: false };
 }
+
+CardViewer.initCardIdsByName = () => {
+    CardViewer.Database.cardsIdsByName = {};
+    for(let card of Object.values(CardViewer.Database.cards)) {
+        let key = card.name.toLowerCase();
+        CardViewer.Database.cardsIdsByName[key] ??= [];
+        CardViewer.Database.cardsIdsByName[key].push(card.id);
+    }
+};
+CardViewer.getCardByName = name => {
+    if(!CardViewer.Database.cardsIdsByName) {
+        CardViewer.initCardIdsByName();
+    }
+    return CardViewer.Database.cards[
+        CardViewer.Database.cardsIdsByName[name.toLowerCase()]?.[0]
+    ];
+};
+
+CardViewer.getCardLink = card =>
+    `https://limitlesssocks.github.io/EXU-Scrape/card?id=${card.id}`;
 
 // some constants
 const CATEGORY_RETRAIN = 1;
@@ -75,32 +96,32 @@ const escapeXMLString = (str) =>
 const DB_DATE_FORMAT = /(.{4})-(.{2})-(.{2})/; // year-month-day
 const EXU_DATE_FORMAT = /(.{2})-(.{2})-(.{4})\.(.{2})\.(.{2})\.(.{2})/; // month-day-year.hour.minute.second
 const DISPLAY_DATE_FORMAT = /(.{2})\/(.{2})\/(.{4})/; // month/day/year
-const formatDateAdded = (date, raw=false) => {
+const formatDateAdded = (date) => {
     let fmt, year, month, day, hour, minute, second;
-    let action;
+    // let action;
     if(fmt = DB_DATE_FORMAT.exec(date)) {
         [, year, month, day] = fmt;
-        action = "Released";
+        // action = "Released";
     }
     else if(fmt = EXU_DATE_FORMAT.exec(date)) {
         [, month, day, year, hour, minute, second] = fmt;
-        action = "Integrated";
+        // action = "Integrated";
     }
     else if(fmt = DISPLAY_DATE_FORMAT.exec(date)) {
         [, month, day, year] = fmt;
-        action = null;
+        // action = null;
     }
     
     let str = month + "/" + day + "/" + year;
     
-    if(!raw && action) {
-        str = action + " " + str;
-    }
+    // if(!raw && action) {
+        // str = action + " " + str;
+    // }
     
     return str;
 };
 const getComparableDate = (date) => {
-    let dateString = formatDateAdded(date, true);
+    let dateString = formatDateAdded(date);
     return new Date(dateString);
 };
 
@@ -120,7 +141,8 @@ class Prompt {
         this.anchor = $("<div>").addClass("popup-background");
         
         this.anchor.click(e => {
-            if(e.target == this.anchor.get(0)) {
+            const popupBackground = this.anchor.get(0);
+            if(e.target == popupBackground) {
                 this.close(true);
             }
             // console.log(e.target);
@@ -1134,8 +1156,11 @@ CardViewer.createFilter = function (query, exclude = null) {
     return filter;
 };
 
+const ONE_YEAR_FROM_NOW = Date.now() + 365 * 24 * 60 * 60 * 1000;
 const SortByPropertyMap = {
-    text: (card) => card.effect.length + (card.pendulum_effect || "").length
+    text: (card) => card.effect.length + (card.pendulum_effect || "").length,
+    // add a year from today's date when comparing cards to shove null dated cards to the end
+    date: (card) => new Date(card.date ?? ONE_YEAR_FROM_NOW),
 };
 //SortByIsNumber
 const SortByFunction = {
@@ -1169,12 +1194,14 @@ CardViewer.filter = function (query, exclude = null) {
     // console.log("AFTER:", CardViewer.caseSensitive);
     
     let sortByProperty = query.sortBy;
-    if(typeof sortByProperty === "undefined")
+    if(typeof sortByProperty === "undefined") {
         sortByProperty = CardViewer.Search.config.sortByProperty;
+    }
     
     let sortOrder = query.sortOrder;
-    if(typeof sortOrder === "undefined")
+    if(typeof sortOrder === "undefined") {
         sortOrder = CardViewer.Search.config.sortOrder;
+    }
     
     if(sortByProperty in SortByPropertyMap) {
         sortByProperty = SortByPropertyMap[sortByProperty];
@@ -1447,7 +1474,8 @@ CardViewer.composeResult = function (card) {
     let author = $("<h4 class=result-author>").text(card.username);
     let dateAdded = $("<h4 class=result-date>");
     if(card.date) {
-        dateAdded.text(formatDateAdded(card.date));
+        let action = card.custom && card.custom > 0 ? "Integrated " : "Released ";
+        dateAdded.text(action + formatDateAdded(card.date));
     }
     
     let res = $("<div class=result>");

@@ -22,7 +22,7 @@ const CACHE_LOCATION = "./cache.json";
 const loadDatabase = async function() {
     const db = {};
     TimedConsole.log("loadDatabase: reading databases");
-    const head = "https://raw.githubusercontent.com/LimitlessSocks/EXU-Scrape/master/";
+    const head = "https://raw.githubusercontent.com/LimitlessSocks/EXU-Scrape/main/";
     // const head = "./../../EXU-Scrape/";
     const urls = [
         // "ycg.json",

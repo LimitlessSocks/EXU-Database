@@ -165,13 +165,13 @@ const INDICATORS = [
     new TagIndicator(/and/i, () => OPERATOR_INLINE_AND),
     new TagIndicator(/!|not/i, () => OPERATOR_NOT),
     new TagIndicator(/case(d| sensitive)?/i, () => CASE_SENSITIVE),
-    new TagIndicator(/(?:limit|at)\s*(-?\d+|any)/, (match) => ({ limit: match[1] })),
-    new TagIndicator(/semi[- ]?limit(ed)?/, () => ({ limit: "2" })),
-    new TagIndicator(/limit(ed)?/, () => ({ limit: "1" })),
-    new TagIndicator(/unlimit(ed)?/, () => ({ limit: "3" })),
-    new TagIndicator(/ban(ed)?/, () => ({ limit: "0" })),
-    new TagIndicator(/non[- ]?effect|effectless/, () => ({ type: "noneffect" })),
-    new TagIndicator(/(?:dated?|added|created|made)\s*(>=?|<=?|[/!]?==?|before|after)?\s*(\d{4}|\d+\/\d+\/\d+)/, (match) => ({
+    new TagIndicator(/(?:limit|at)\s*(-?\d+|any)/i, (match) => ({ limit: match[1] })),
+    new TagIndicator(/semi[- ]?limit(ed)?/i, () => ({ limit: "2" })),
+    new TagIndicator(/limit(ed)?/i, () => ({ limit: "1" })),
+    new TagIndicator(/unlimit(ed)?/i, () => ({ limit: "3" })),
+    new TagIndicator(/ban(n?ed)?/i, () => ({ limit: "0" })),
+    new TagIndicator(/non[- ]?effect|effectless/i, () => ({ type: "noneffect" })),
+    new TagIndicator(/(?:dated?|added|created|made)\s*(>=?|<=?|[/!]?==?|before|after)?\s*(\d{4}|\d+\/\d+\/\d+)/i, (match) => ({
         dateCompare: getComparison(match[1]),
         date: match[2],
     })).rememberParameter(),
@@ -280,7 +280,7 @@ const INDICATORS = [
         type: "monster",
         monsterCategory: TRANSLATE_TABLE[match[1].toLowerCase()],
     })),
-    new TagIndicator(/ritual\s*(monster|spell)?/, (match) => {
+    new TagIndicator(/ritual\s*(monster|spell)?/i, (match) => {
         let type = (match[1] || "any").toLowerCase();
         switch(type) {
             case "spell":
@@ -300,10 +300,10 @@ const INDICATORS = [
         OPERATOR_INLINE_OR,
         { name: match[1] },
     ])),
-    new TagIndicator(/(?:pend:)\s*\[([^[\]]+)\]/, (match) => ({
+    new TagIndicator(/(?:pend:)\s*\[([^[\]]+)\]/i, (match) => ({
         pend_effect: match[1],
     })),
-    new TagIndicator(/(?:text:)\s*\[([^[\]]+)\]/, (match) => ({
+    new TagIndicator(/(?:text:)\s*\[([^[\]]+)\]/i, (match) => ({
         main_effect: match[1],
     })),
     new TagIndicator(/\[([^[\]]+)\]/, (match) => ({
@@ -339,6 +339,7 @@ const INDICATORS = [
     
     new TagIndicator(/\(/, () => LEFT_PARENTHESIS),
     new TagIndicator(/\)/, () => RIGHT_PARENTHESIS),
+    new TagIndicator(/non/i, () => OPERATOR_NOT),
     
     new TagIndicator(/(>=?|<=?|[/!]?==?)?\s*(\w+)|"([^"]+)"/, (match, memory) => {
         if(!memory.lastParameter) {
