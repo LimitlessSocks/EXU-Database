@@ -621,15 +621,15 @@ CardViewer.Filters.isFlipMonster = (card) =>
     card.effect.indexOf("FLIP:") !== -1;
 
 CardViewer.Filters.isUnionMonster = (card) =>
-    card.ability === "Union";
+    card.ability?.includes("Union");
 CardViewer.Filters.isTunerMonster = (card) =>
-    card.ability === "Tuner";
+    card.ability?.includes("Tuner");
 CardViewer.Filters.isToonMonster = (card) =>
-    card.ability === "Toon";
+    card.ability?.includes("Toon");
 CardViewer.Filters.isGeminiMonster = (card) =>
-    card.ability === "Gemini";
+    card.ability?.includes("Gemini");
 CardViewer.Filters.isSpiritMonster = (card) =>
-    card.ability === "Spirit";
+    card.ability?.includes("Spirit");
     
 CardViewer.Filters.isAtkOrDef = (atkDefVal) => (card) =>
     card.atk == atkDefVal || (!CardViewer.Filters.isLink && card.def == atkDefVal);
